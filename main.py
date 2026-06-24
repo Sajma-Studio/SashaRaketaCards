@@ -582,6 +582,78 @@ async def universal_handler(message: types.Message):
             pass
         return
 
+# ================================================================
+    # АДМІНІСТРАТИВНІ КОМАНДИ (Тільки для ADMINS та MY_ID)
+    # ================================================================
+
+    # --- КОМАНДА: ВИДАТИ (Трофеї) ---
+    if cmd == "видати":
+        if uid not in ADMINS and uid != MY_ID:
+            return await message.reply("❌ Доступ заборонено\\! Ви не є адміністратором\\.", parse_mode="MarkdownV2")
+        try:
+            target_id = int(text_lower[1])
+            amount    = int(text_lower[2])
+            
+            target_name = db.get_user_name(target_id)
+            if not target_name:
+                return await message.reply("❌ Гравця з таким ID не знайдено\\.", parse_mode="MarkdownV2")
+            
+            db.add_coins(target_id, amount)
+            await message.reply(
+                f"⚡️ *БАЛАНС ОНОВЛЕНО\\!*\n"
+                f"⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n"
+                f"👤 Гравець: *{escape_md(target_name)}* `({target_id})`\n"
+                f"🏆 Видано: *{escape_md(str(amount))}* трофеїв",
+                parse_mode="MarkdownV2"
+            )
+            try:
+                await bot.send_message(
+                    target_id,
+                    f"🎁 Адміністратор видав тобі *{escape_md(str(amount))}* 🏆\\!",
+                    parse_mode="MarkdownV2"
+                )
+            except Exception:
+                pass
+        except (ValueError, IndexError):
+            await message.reply("❌ Використання: `видати <айді> <кількість>`", parse_mode="MarkdownV2")
+        return
+        
+    if cmd == "нагородити":
+        if uid not in ADMINS and uid != MY_ID:
+            return await message.reply("❌ Доступ заборонено\\! Ви не є адміністратором\\.", parse_mode="MarkdownV2")
+        try:
+            target_id = int(original_parts[1])
+            
+            achievement_text = " ".join(original_parts[2:]).strip()
+            
+            if not achievement_text:
+                return await message.reply("❌ Напишіть текст нагороди\\!", parse_mode="MarkdownV2")
+                
+            target_name = db.get_user_name(target_id)
+            if not target_name:
+                return await message.reply("❌ Гравця з таким ID не знайдено\\.", parse_mode="MarkdownV2")
+            
+            db.add_user_achievement(target_id, achievement_text)
+            
+            await message.reply(
+                f"🎖 *НАГОРОДУ ПРИСВОЄНО\\!*\n"
+                f"⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n"
+                f"👤 Гравець: *{escape_md(target_name)}* `({target_id})`\n"
+                f"🏅 Нагорода: *{escape_md(achievement_text)}*",
+                parse_mode="MarkdownV2"
+            )
+            try:
+                await bot.send_message(
+                    target_id,
+                    f"🎉 Вітаємо\\! Ви отримали нову нагороду: *{escape_md(achievement_text)}*",
+                    parse_mode="MarkdownV2"
+                )
+            except Exception:
+                pass
+        except (ValueError, IndexError):
+            await message.reply("❌ Використання: `нагородити <айді> <текст нагороди>`", parse_mode="MarkdownV2")
+        return
+    
     # --- Лічильник повідомлень ---
     db.update_message_count(uid)
 
