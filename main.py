@@ -658,6 +658,44 @@ async def universal_handler(message: types.Message):
         except (ValueError, IndexError):
             await message.reply("❌ Використання: `нагородити <айді> <текст нагороди>`", parse_mode="MarkdownV2")
         return
+
+    # --- КОМАНДА: ЗАБРАТИ НАГОРОДУ ---
+    if cmd == "забрати_нагороду":
+        if uid not in ADMINS and uid != MY_ID:
+            return await message.reply("❌ Доступ заборонено\\! Ви не є адміністратором\\.", parse_mode="MarkdownV2")
+        try:
+            parts = message.text.split()
+            target_id = int(parts[1])
+            achievement_text = " ".join(parts[2:]).strip()
+            
+            if not achievement_text:
+                return await message.reply("❌ Напишіть точний текст нагороди, яку треба забрати\\!", parse_mode="MarkdownV2")
+                
+            target_name = db.get_user_name(target_id)
+            if not target_name:
+                return await message.reply("❌ Гравця з таким ID не знайдено\\.", parse_mode="MarkdownV2")
+            
+            # Викликаємо метод видалення з бази
+            db.remove_achievement(target_id, achievement_text)
+            
+            await message.reply(
+                f"📉 *НАГОРОДУ АНУЛЬОВАНО\\!*\n"
+                f"⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n"
+                f"👤 Гравець: *{escape_md(target_name)}* `({target_id})`\n"
+                f"💔 Забрано нагороду: *{escape_md(achievement_text)}*",
+                parse_mode="MarkdownV2"
+            )
+            try:
+                await bot.send_message(
+                    target_id,
+                    f"⚠️ Адміністратор анулював твою нагороду: *{escape_md(achievement_text)}*",
+                    parse_mode="MarkdownV2"
+                )
+            except Exception:
+                pass
+        except (ValueError, IndexError):
+            await message.reply("❌ Використання: `забрати_нагороду <айді> <точний текст нагороди>`", parse_mode="MarkdownV2")
+        return
     
     # --- Лічильник повідомлень ---
     db.update_message_count(uid)
