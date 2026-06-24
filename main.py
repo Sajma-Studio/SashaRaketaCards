@@ -351,7 +351,7 @@ async def universal_handler(message: types.Message):
             # --- ПЕРЕВІРКА КУЛДАУНУ ---
             now = time.time()
             last = last_casino_play.get(uid, 0)
-            cooldown = 60
+            cooldown = 10
             
             if now - last < cooldown:
                 wait = int(cooldown - (now - last))
