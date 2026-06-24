@@ -345,7 +345,6 @@ async def universal_handler(message: types.Message):
         return
 
     # --- КАЗИНО ---
-    # --- КАЗИНО ---
     if cmd == "казино" and len(text_lower) > 1:
         try:
             # --- ПЕРЕВІРКА КУЛДАУНУ ---
@@ -364,10 +363,13 @@ async def universal_handler(message: types.Message):
             bet = int(text_lower[1])
             if bet <= 0:
                 return await message.reply("❌ Ставка має бути більше 0\\.", parse_mode="MarkdownV2")
+            
             coins, _ = db.get_user_data(uid)
-            if coins < bet:
+            
+            if coins - bet < -5000:
                 return await message.reply(
-                    f"❌ Недостатньо трофеїв\\. У тебе *{escape_md(str(coins))}* 🏆",
+                    f"❌ Не можна ставити так багато\\! Твій ліміт боргу вичерпано\\. Баланс не може впасти нижче \\-5000 🏆\n"
+                    f"У тебе зараз: *{escape_md(str(coins))}* 🏆",
                     parse_mode="MarkdownV2"
                 )
                 
@@ -382,6 +384,7 @@ async def universal_handler(message: types.Message):
                     f"⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n"
                     f"Ставка: *{escape_md(str(bet))}* 🏆\n"
                     f"Прибуток: *\\+{escape_md(str(prize))}* 🏆\n"
+                    f"💰 Новий баланс: *{escape_md(str(coins + prize))}* 🏆\n"
                     f"🍀 Удача на твоєму боці\\!",
                     parse_mode="MarkdownV2"
                 )
@@ -392,6 +395,7 @@ async def universal_handler(message: types.Message):
                     f"⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n"
                     f"Ставка: *{escape_md(str(bet))}* 🏆\n"
                     f"Збиток: *\\-{escape_md(str(bet))}* 🏆\n"
+                    f"💰 Новий баланс: *{escape_md(str(coins - bet))}* 🏆\n"
                     f"😔 Спробуй ще раз\\!",
                     parse_mode="MarkdownV2"
                 )
