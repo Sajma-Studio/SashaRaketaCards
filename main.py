@@ -618,22 +618,27 @@ async def universal_handler(message: types.Message):
             await message.reply("❌ Використання: `видати <айді> <кількість>`", parse_mode="MarkdownV2")
         return
         
+   # --- КОМАНДА: НАГОРОДИТИ (З виправленням регістру) ---
     if cmd == "нагородити":
         if uid not in ADMINS and uid != MY_ID:
             return await message.reply("❌ Доступ заборонено\\! Ви не є адміністратором\\.", parse_mode="MarkdownV2")
         try:
-            target_id = int(original_parts[1])
+            # Розбиваємо оригінальний текст повідомлення, щоб зберегти великі літери
+            parts = message.text.split()
             
-            achievement_text = " ".join(original_parts[2:]).strip()
+            target_id = int(parts[1])
+            # Збираємо весь текст нагороди після ID
+            achievement_text = " ".join(parts[2:]).strip()
             
             if not achievement_text:
                 return await message.reply("❌ Напишіть текст нагороди\\!", parse_mode="MarkdownV2")
                 
-            target_name = db.add_achievement(target_id)
+            target_name = db.get_user_name(target_id)
             if not target_name:
                 return await message.reply("❌ Гравця з таким ID не знайдено\\.", parse_mode="MarkdownV2")
             
-            db.add_user_achievement(target_id, achievement_text)
+            # Додаємо в базу
+            db.add_achievement(target_id, achievement_text)
             
             await message.reply(
                 f"🎖 *НАГОРОДУ ПРИСВОЄНО\\!*\n"
