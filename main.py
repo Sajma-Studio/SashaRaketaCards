@@ -659,42 +659,49 @@ async def universal_handler(message: types.Message):
             await message.reply("❌ Використання: `нагородити <айді> <текст нагороди>`", parse_mode="MarkdownV2")
         return
 
-    # --- КОМАНДА: ЗАБРАТИ НАГОРОДУ ---
+   # --- КОМАНДА: ЗАБРАТИ НАГОРОДУ (За номером) ---
     if cmd == "забрати_нагороду":
         if uid not in ADMINS and uid != MY_ID:
             return await message.reply("❌ Доступ заборонено\\! Ви не є адміністратором\\.", parse_mode="MarkdownV2")
         try:
             parts = message.text.split()
             target_id = int(parts[1])
-            achievement_text = " ".join(parts[2:]).strip()
+            display_num = int(parts[2])  # Номер, який адмін бачить у профілі (1, 2, 3...)
             
-            if not achievement_text:
-                return await message.reply("❌ Напишіть точний текст нагороди, яку треба забрати\\!", parse_mode="MarkdownV2")
+            if display_num < 1:
+                return await message.reply("❌ Номер нагороди має бути 1 або більше\\.", parse_mode="MarkdownV2")
                 
             target_name = db.get_user_name(target_id)
             if not target_name:
                 return await message.reply("❌ Гравця з таким ID не знайдено\\.", parse_mode="MarkdownV2")
             
-            # Викликаємо метод видалення з бази
-            db.remove_achievement(target_id, achievement_text)
+            # Перетворюємо номер на індекс (1 -> 0, 2 -> 1)
+            db_index = display_num - 1
             
-            await message.reply(
-                f"📉 *НАГОРОДУ АНУЛЬОВАНО\\!*\n"
-                f"⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n"
-                f"👤 Гравець: *{escape_md(target_name)}* `({target_id})`\n"
-                f"💔 Забрано нагороду: *{escape_md(achievement_text)}*",
-                parse_mode="MarkdownV2"
-            )
-            try:
-                await bot.send_message(
-                    target_id,
-                    f"⚠️ Адміністратор анулював твою нагороду: *{escape_md(achievement_text)}*",
+            # Викликаємо твій готовий метод з бази
+            success = db.remove_achievement(target_id, db_index)
+            
+            if success:
+                await message.reply(
+                    f"📉 *НАГОРОДУ АНУЛЬОВАНО\\!*\n"
+                    f"⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n"
+                    f"👤 Гравець: *{escape_md(target_name)}* `({target_id})`\n"
+                    f"🗑 Видалено нагороду під номером: *{display_num}*",
                     parse_mode="MarkdownV2"
                 )
-            except Exception:
-                pass
+                try:
+                    await bot.send_message(
+                        target_id,
+                        f"⚠️ Адміністратор анулював твою нагороду \\(номер {display_num} у списку\\)\\.",
+                        parse_mode="MarkdownV2"
+                    )
+                except Exception:
+                    pass
+            else:
+                await message.reply(f"❌ Нагороду №{display_num} не знайдено у цього гравця\\.", parse_mode="MarkdownV2")
+                
         except (ValueError, IndexError):
-            await message.reply("❌ Використання: `забрати_нагороду <айді> <точний текст нагороди>`", parse_mode="MarkdownV2")
+            await message.reply("❌ Використання: `забрати_нагороду <айді> <номер нагороди з профілю>`", parse_mode="MarkdownV2")
         return
     
     # --- Лічильник повідомлень ---
