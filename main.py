@@ -16,6 +16,8 @@ DB_URL = os.getenv("DATABASE_URL", "ВАШ_URL")
 GLOBAL_COOLDOWN = 60
 BLACK_LIST = []
 BOT_ACTIVE = True
+GROUP_ID = -1002574581594
+GROUP_LINK = "https://t.me/kaaksjsbsjq"
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
@@ -62,16 +64,20 @@ def streak_bonus(streak: int) -> int:
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
     uid = message.from_user.id
-    db.update_user(uid, message.from_user.full_name)
-    db._ensure_lottery_column()
+    if not db.get_user_name(uid):
+        return await message.answer(
+            f"👋 Щоб користуватись ботом — спочатку зайди в групу\\!\n"
+            f"➡️ {GROUP_LINK}",
+            parse_mode="MarkdownV2"
+        )
     await message.answer(
         f"👋 Привіт, {escape_md(message.from_user.first_name)}\\!\n"
-        f"Готовий збирати колекцію трофеїв?\n\n"
+        f"Готовий пушити трофеї?\n\n"
         f"Натисни *❓ Допомога* щоб дізнатись всі команди\\!",
         reply_markup=get_main_keyboard(uid),
         parse_mode="MarkdownV2"
     )
-
+    
 # --- ЗМІНА ІМЕНІ ---
 @dp.message(F.text.regexp(r"(?i)^ім'я\s+(.+)$"))
 async def change_name(message: types.Message):
@@ -289,7 +295,15 @@ async def universal_handler(message: types.Message):
     if uid in BLACK_LIST:
         return
 
+    if message.chat.id == GROUP_ID:
     db.update_user(uid, message.from_user.full_name)
+elif message.chat.type == "private":
+    if not db.get_user_name(uid):
+        return await message.answer(
+            f"👋 Щоб користуватись ботом — спочатку зайди в групу\\!\n"
+            f"➡️ {GROUP_LINK}",
+            parse_mode="MarkdownV2"
+        )
     db._ensure_lottery_column()
 
     if not message.text:
