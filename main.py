@@ -9,7 +9,7 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemo
 from database import Database
 
 # --- КОНФІГУРАЦІЯ ---
-TOKEN = "8005204734:AAHab4UCbClN50vu7hLTeufLUhs7Iaa3gfs"
+TOKEN = "8005204734:AAHGIx0p-5Yz8NmWlS7u4dbw5xYI1LURr8A"
 MY_ID = 7518373450 
 ADMINS = [7507020081]   
 DB_URL = os.getenv("DATABASE_URL", "ВАШ_URL")
