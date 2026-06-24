@@ -629,7 +629,7 @@ async def universal_handler(message: types.Message):
             if not achievement_text:
                 return await message.reply("❌ Напишіть текст нагороди\\!", parse_mode="MarkdownV2")
                 
-            target_name = db.get_user_name(target_id)
+            target_name = db.add_achievement(target_id)
             if not target_name:
                 return await message.reply("❌ Гравця з таким ID не знайдено\\.", parse_mode="MarkdownV2")
             
