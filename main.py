@@ -456,7 +456,7 @@ async def universal_handler(message: types.Message):
             await message.reply(
                 f"🥇 *Місце \\#{escape_md(str(place))}*\n"
                 f"👤 {escape_md(name)}\n"
-                f"🏆 {escape_md(str(coins_val))} trofejev",
+                f"🏆 {escape_md(str(coins_val))} трофеїв",
                 parse_mode="MarkdownV2"
             )
         except (ValueError, IndexError):
