@@ -277,10 +277,11 @@ async def help_all(message: types.Message):
     await message.reply(text, parse_mode="MarkdownV2")
 
 # ================================================================
-# АКТИВНІ ДУЕЛІ та МОНЕТКА
+# АКТИВНІ ДУЕЛІ МОНЕТКА та КАЗИНО
 # ================================================================
 duels = {}
 last_coin_flip: dict[int, float] = {}
+last_casino_play: dict[int, float] = {}
 
 # ================================================================
 # УНІВЕРСАЛЬНИЙ ОБРОБНИК
@@ -294,22 +295,22 @@ async def universal_handler(message: types.Message):
         return
 
     if message.chat.id == GROUP_ID:
-    db.update_user(uid, message.from_user.full_name)
-elif message.chat.type == "private":
-    if not db.get_user_name(uid):
-        return await message.answer(
-            f"👋 Щоб користуватись ботом — спочатку зайди в групу\\!\n"
-            f"➡️ {GROUP_LINK}",
-            parse_mode="MarkdownV2"
-        )
-    db._ensure_lottery_column()
+        db.update_user(uid, message.from_user.full_name)
+    elif message.chat.type == "private":
+        if not db.get_user_name(uid):
+            return await message.answer(
+                f"👋 Щоб користуватись ботом — спочатку зайди в групу\\!\n"
+                f"➡️ {GROUP_LINK}",
+                parse_mode="MarkdownV2"
+            )
+        db._ensure_lottery_column()
 
     if not message.text:
         db.update_message_count(uid)
         return
 
     original_parts = message.text.split()
-    text_lower     = message.text.lower().split()
+    text_lower      = message.text.lower().split()
     cmd            = text_lower[0] if text_lower else ""
 
     # ================================================================
@@ -344,8 +345,22 @@ elif message.chat.type == "private":
         return
 
     # --- КАЗИНО ---
+    # --- КАЗИНО ---
     if cmd == "казино" and len(text_lower) > 1:
         try:
+            # --- ПЕРЕВІРКА КУЛДАУНУ ---
+            now = time.time()
+            last = last_casino_play.get(uid, 0)
+            cooldown = 60
+            
+            if now - last < cooldown:
+                wait = int(cooldown - (now - last))
+                return await message.reply(
+                    f"🎰 Казино ще недоступне\\! Зачекай ще *{escape_md(str(wait))}* сек\\.",
+                    parse_mode="MarkdownV2"
+                )
+            # ---------------------------
+
             bet = int(text_lower[1])
             if bet <= 0:
                 return await message.reply("❌ Ставка має бути більше 0\\.", parse_mode="MarkdownV2")
@@ -355,6 +370,9 @@ elif message.chat.type == "private":
                     f"❌ Недостатньо трофеїв\\. У тебе *{escape_md(str(coins))}* 🏆",
                     parse_mode="MarkdownV2"
                 )
+                
+            last_casino_play[uid] = now
+
             win = random.random() < 0.5
             if win:
                 prize = bet // 2
@@ -434,7 +452,7 @@ elif message.chat.type == "private":
             await message.reply(
                 f"🥇 *Місце \\#{escape_md(str(place))}*\n"
                 f"👤 {escape_md(name)}\n"
-                f"🏆 {escape_md(str(coins_val))} трофеїв",
+                f"🏆 {escape_md(str(coins_val))} trofejev",
                 parse_mode="MarkdownV2"
             )
         except (ValueError, IndexError):
@@ -483,8 +501,8 @@ elif message.chat.type == "private":
             duels[target_id] = {
                 "challenger_id":   uid,
                 "challenger_name": my_name,
-                "bet":             bet,
-                "time":            time.time()
+                "bet":              bet,
+                "time":             time.time()
             }
             await message.reply(
                 f"⚔️ Виклик надіслано *{escape_md(target_name)}* на *{escape_md(str(bet))}* 🏆",
