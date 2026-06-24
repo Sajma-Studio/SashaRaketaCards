@@ -29,7 +29,7 @@ def get_main_keyboard(user_id):
         [KeyboardButton(text="🃏 Картка"),     KeyboardButton(text="👤 Профіль")],
         [KeyboardButton(text="🏆 Топ"),        KeyboardButton(text="🎁 Подарунок")],
         [KeyboardButton(text="🎰 Казино")],
-        [KeyboardButton(text="⚔️ Дуель"),     
+        [KeyboardButton(text="⚔️ Дуель")],     
         [KeyboardButton(text="❓ Допомога")],
     ]
     return ReplyKeyboardMarkup(keyboard=buttons, resize_keyboard=True)
